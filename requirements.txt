@@ -5,3 +5,4 @@ django-js-asset==3.1.2
 pillow==12.2.0
 sqlparse==0.5.5
 whitenoise
+gunicorn
