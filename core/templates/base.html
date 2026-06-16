@@ -1,0 +1,75 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>{% block title %}ModernScribe | Professional Journal{% endblock %}</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&display=swap" rel="stylesheet"/>
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    
+    <!-- Tailwind Config -->
+    <script src="{% static 'js/tailwind-config.js' %}"></script>
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="antialiased flex flex-col min-h-screen">
+
+    <!-- TopNavBar -->
+    <header class="sticky top-0 w-full z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-[0_4px_20px_rgba(0,0,0,0.05)] font-['Inter'] antialiased tracking-tight">
+        <nav class="max-w-7xl mx-auto px-8 flex justify-between items-center h-16">
+            <div class="flex items-center gap-12">
+                <a class="text-xl font-bold text-indigo-950" href="{% url 'index' %}">ModernScribe</a>
+                <div class="hidden md:flex items-center gap-8">
+                    <a class="{% if request.resolver_match.url_name == 'index' %}text-indigo-900 border-b-2 border-indigo-900 pb-1{% else %}text-gray-500 hover:text-indigo-700{% endif %} transition-all duration-300 ease-in-out cursor-pointer active:scale-95" href="{% url 'index' %}">Home</a>
+                    <a class="{% if request.resolver_match.url_name == 'archive' %}text-indigo-900 border-b-2 border-indigo-900 pb-1{% else %}text-gray-500 hover:text-indigo-700{% endif %} transition-all duration-300 ease-in-out cursor-pointer active:scale-95" href="{% url 'archive' %}">Stories</a>
+                    <a class="{% if request.resolver_match.url_name == 'create_post' %}text-indigo-900 border-b-2 border-indigo-900 pb-1{% else %}text-gray-500 hover:text-indigo-700{% endif %} transition-all duration-300 ease-in-out cursor-pointer active:scale-95" href="{% url 'create_post' %}">Create Post</a>
+                </div>
+            </div>
+            <div class="flex items-center gap-6">
+                {% if user.is_authenticated %}
+                <div class="relative group">
+                    <button class="w-10 h-10 rounded-full bg-[#2d3748] text-white flex items-center justify-center text-lg font-semibold cursor-pointer border border-gray-600 transition-all hover:ring-2 hover:ring-indigo-200">
+                        {{ user.username.0|upper|default:"A" }}
+                    </button>
+                    <!-- Dropdown Menu -->
+                    <div class="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-[0_8px_30px_rgb(0,0,0,0.12)] py-2 border border-gray-100 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 transform origin-top-right scale-95 group-hover:scale-100 z-50">
+                        <a href="{% url 'my_posts' %}" class="block px-5 py-2.5 text-gray-800 hover:bg-gray-50 hover:text-indigo-900 transition-colors text-sm font-medium">My Posts</a>
+                        <a href="{% url 'logout' %}" class="block px-5 py-2.5 text-gray-800 hover:bg-gray-50 hover:text-indigo-900 transition-colors text-sm font-medium">Log Out</a>
+                    </div>
+                </div>
+                {% else %}
+                <a href="{% url 'login' %}" class="text-gray-500 font-medium hover:text-indigo-700 transition-all">Login</a>
+                {% endif %}
+            </div>
+        </nav>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-grow">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer>
+        <div class="max-w-7xl mx-auto px-8 mt-12 pt-8 border-t border-gray-50 text-center text-gray-400 text-xs">
+            © 2026 ModernScribe Journal. All rights reserved.
+        </div>
+    </footer>
+
+    <!-- Main JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

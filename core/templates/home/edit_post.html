@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Post - ModernScribe{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-8 py-16">
+    <div class="mb-10">
+        <h1 class="font-headline-lg text-display-sm text-primary mb-2">Edit Post</h1>
+        <p class="text-gray-500">Update your insights and keep them fresh.</p>
+    </div>
+
+    <form action="{% url 'edit_post' post.id %}" method="POST" enctype="multipart/form-data" class="space-y-8 bg-white p-8 sm:p-10 rounded-2xl shadow-sm border border-gray-100">
+        <!-- CSRF Token would go here -->
+         {% csrf_token %}
+        
+        <div>
+            <label for="title" class="block text-sm font-semibold text-gray-700 mb-2">Post Title</label>
+            <input type="text" id="title" name="title" value="{{ post.title }}" placeholder="Enter a descriptive title..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-800 font-medium">
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+                <label for="topic" class="block text-sm font-semibold text-gray-700 mb-2">Topic / Category</label>
+                <select id="topic" name="topic" class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-800 appearance-none bg-white">
+                    <option value="" disabled {% if not post.topic %}selected{% endif %}>Select a topic</option>
+                    {% for t in topics %}
+                        <option value="{{ t.id }}" {% if post.topic and post.topic.id == t.id %}selected{% endif %}>{{ t.name }}</option>
+                    {% endfor %}
+                    <option value="other">Other...</option>
+                </select>
+                <!-- Custom Topic Input (Hidden by default) -->
+                <div id="custom_topic_container" class="hidden mt-3 flex items-center gap-2">
+                    <input type="text" id="custom_topic_input" placeholder="Type new topic..." class="flex-1 px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-sm text-gray-800">
+                    <button type="button" id="add_custom_topic_btn" class="px-4 py-2.5 bg-indigo-50 text-indigo-700 text-sm font-semibold rounded-xl hover:bg-indigo-100 transition-colors">Add</button>
+                </div>
+            </div>
+            <div>
+                <label for="cover_image_url" class="block text-sm font-semibold text-gray-700 mb-2">Cover Image URL</label>
+                <input type="url" id="cover_image_url" name="cover_image_url" value="{{ post.cover_image_url|default:'' }}" placeholder="https://..." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-800 mb-4">
+                
+                <label for="cover_image_file" class="block text-sm font-semibold text-gray-700 mb-2">Or Upload Image (Leave empty to keep current)</label>
+                {% if post.cover_image %}
+                    <div class="mb-2 text-sm text-gray-500">Current: {{ post.cover_image.name }}</div>
+                {% endif %}
+                <input type="file" id="cover_image_file" name="cover_image_file" accept="image/*" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-800 bg-white">
+            </div>
+        </div>
+
+        <div>
+            <label for="content" class="block text-sm font-semibold text-gray-700 mb-2">Content</label>
+            <textarea id="content" name="content" rows="12" placeholder="Write your content here... Markdown is supported." class="w-full px-4 py-3 rounded-xl border border-gray-200 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 outline-none transition-all text-gray-800 resize-y">{{ post.content }}</textarea>
+        </div>
+
+        <div class="flex items-center justify-end gap-4 pt-4 border-t border-gray-100">
+            <a href="{% url 'my_posts' %}" class="px-6 py-2.5 text-gray-600 font-semibold hover:bg-gray-50 rounded-xl transition-colors">Cancel</a>
+            <button type="submit" class="px-8 py-2.5 bg-indigo-600 text-white font-semibold rounded-xl hover:bg-indigo-700 transition-colors shadow-sm">Save Changes</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.ckeditor.com/ckeditor5/40.2.0/classic/ckeditor.js"></script>
+<style>
+    .ck-editor__editable_inline {
+        min-height: 250px;
+    }
+</style>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        ClassicEditor
+            .create( document.querySelector( '#content' ) )
+            .catch( error => {
+                console.error( error );
+            } );
+
+        const topicSelect = document.getElementById('topic');
+        const customTopicContainer = document.getElementById('custom_topic_container');
+        const customTopicInput = document.getElementById('custom_topic_input');
+        const addCustomTopicBtn = document.getElementById('add_custom_topic_btn');
+
+        topicSelect.addEventListener('change', function() {
+            if (this.value === 'other') {
+                customTopicContainer.classList.remove('hidden');
+                customTopicInput.focus();
+            } else {
+                customTopicContainer.classList.add('hidden');
+            }
+        });
+
+        addCustomTopicBtn.addEventListener('click', function() {
+            const newTopicValue = customTopicInput.value.trim();
+            if (newTopicValue) {
+                // Create new option
+                const newOption = document.createElement('option');
+                // Create a slug-like value
+                const optionValue = newTopicValue.toLowerCase().replace(/\s+/g, '-');
+                newOption.value = optionValue;
+                newOption.textContent = newTopicValue;
+                
+                // Insert before the "Other..." option
+                const otherOption = Array.from(topicSelect.options).find(opt => opt.value === 'other');
+                topicSelect.insertBefore(newOption, otherOption);
+                
+                // Select the new option
+                topicSelect.value = optionValue;
+                
+                // Hide and clear input
+                customTopicContainer.classList.add('hidden');
+                customTopicInput.value = '';
+            }
+        });
+
+        // Allow pressing Enter to add without submitting form
+        customTopicInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                addCustomTopicBtn.click();
+            }
+        });
+    });
+</script>
+{% endblock %}

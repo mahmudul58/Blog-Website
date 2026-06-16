@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Sign In | ModernScribe{% endblock %}
+
+{% block content %}
+<div class="flex items-center justify-center px-4 py-stack-lg min-h-[calc(100vh-200px)]">
+    <div class="w-full max-w-[440px]">
+
+        <!-- Login Card -->
+        <div class="bg-white rounded-xl shadow-[0_8px_30px_rgb(0,0,0,0.04)] border border-outline-variant/20 p-8 md:p-12">
+            <div class="mb-10 text-center">
+                <h2 class="font-headline-sm text-on-surface font-semibold tracking-tight mb-2">Welcome Back</h2>
+                <p class="font-label-md text-on-surface-variant font-normal">Sign in to your editorial workspace.</p>
+            </div>
+
+            {% if messages %}
+            <div class="mb-6">
+                {% for message in messages %}
+                <div class="p-4 mb-4 text-sm text-red-800 rounded-lg bg-red-50" role="alert">
+                    {{ message }}
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form action="{% url 'login' %}" method="POST" class="space-y-8">
+                {% csrf_token %}
+                <!-- Email Field -->
+                <div class="space-y-1">
+                    <label class="block font-label-md text-on-surface-variant text-[11px] uppercase tracking-[0.1em]" for="email">Email Address</label>
+                    <input class="w-full py-2.5 input-minimal border-b border-outline-variant text-on-surface focus:border-primary outline-none transition-all font-inter text-sm placeholder:text-outline/50" id="email" name="email" placeholder="name@example.com" required="" type="email"/>
+                </div>
+
+                <!-- Password Field -->
+                <div class="space-y-1">
+                    <div class="flex justify-between items-center">
+                        <label class="block font-label-md text-on-surface-variant text-[11px] uppercase tracking-[0.1em]" for="password">Password</label>
+                    </div>
+                    <div class="relative">
+                        <input class="w-full py-2.5 input-minimal border-b border-outline-variant text-on-surface focus:border-primary outline-none transition-all font-inter text-sm placeholder:text-outline/50" id="password" name="password" placeholder="••••••••" required="" type="password"/>
+                        <button class="absolute right-0 top-1/2 -translate-y-1/2 text-outline/60 hover:text-on-surface transition-colors" type="button">
+                            <span class="material-symbols-outlined text-xl">visibility</span>
+                        </button>
+                    </div>
+                </div>
+                <!-- Sign In Button -->
+                <button class="w-full bg-primary text-white py-4 rounded-lg font-label-md font-semibold hover:bg-primary/90 transition-all shadow-md active:scale-[0.99] uppercase tracking-widest text-xs" type="submit">
+                    Sign In
+                </button>
+            </form>
+
+            <!-- Divider -->
+            <div class="relative my-10">
+                <div class="absolute inset-0 flex items-center">
+                    <span class="w-full border-t border-outline-variant/30"></span>
+                </div>
+            </div>
+
+            
+            <!-- Footer Text -->
+            <p class="mt-10 text-center font-label-md text-on-surface-variant font-normal text-sm">
+                Don't have an account? 
+                <a class="text-primary font-bold hover:underline underline-offset-4" href="{% url 'register' %}">Join ModernScribe</a>
+            </p>
+        </div>
+
+        <!-- Contextual Decorative Element -->
+        <div class="mt-16 opacity-30">
+            <div class="aspect-[21/9] w-full rounded-xl overflow-hidden grayscale brightness-105 contrast-125 mix-blend-multiply border border-outline-variant/20">
+                <img alt="Workspace Aesthetic" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDl3gr0XX4JpCMmGdzKYR_upNLiVqk7n4aFmj702Hp3Xi9DJBZyc9Bkh684pVLcLIaJCWwyz89iahoJ812DxFHi18AK6z-HMAB9KrYVymvLN_B6esHn-4Zao7MRk8DjpC5YPSdB0dk3Ow2fHT92ZGkLyUNbo15AF3x811w0WmkyiYIxxPRQJ-iMN4LyBpGr0ul8oZ0bkUg6cx2WQ_MpXcn8s1oUrDQXNlNyxtuKneUKmM8-pGeaW-FowDkJNDwMrvg0LL4qeft16gY"/>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

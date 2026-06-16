@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+
+{% block title %}Archive - ModernScribe{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto px-8 py-16">
+    <h1 class="font-headline-lg text-display-md text-primary mb-12">The Stories</h1>
+
+    <div class="space-y-12">
+        {% regroup posts by created_at.year as year_list %}
+        {% for year in year_list %}
+        <section>
+            <h2 class="text-2xl font-bold text-indigo-900 border-b border-gray-200 pb-4 mb-6 {% if not forloop.first %}mt-16{% endif %}">{{ year.grouper }}</h2>
+            <div class="space-y-6">
+                {% for post in year.list %}
+                <article class="flex flex-col md:flex-row md:items-baseline gap-4 group cursor-pointer" data-url="{% url 'post_detail' post.id %}" onclick="window.location=this.dataset.url">
+                    <span class="text-sm font-['Inter'] text-gray-400 w-32 shrink-0">{{ post.created_at|date:"F d" }}</span>
+                    <div>
+                        <a href="{% url 'post_detail' post.id %}" class="text-xl font-semibold text-primary group-hover:text-indigo-600 transition-colors">{{ post.title }}</a>
+                        <p class="text-gray-500 mt-1 line-clamp-2">{{ post.content|striptags|truncatewords:20|safe }}</p>
+                    </div>
+                </article>
+                {% endfor %}
+            </div>
+        </section>
+        {% empty %}
+        <p class="text-gray-500 text-center py-10">No stories available.</p>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

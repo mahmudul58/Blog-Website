@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{{ post.title }} | ModernScribe{% endblock %}
+
+{% block content %}
+<!-- Reading Progress Indicator -->
+<div class="reading-progress"></div>
+
+<div class="max-w-7xl mx-auto px-8 py-8">
+    <article class="grid grid-cols-12 gap-gutter">
+        <!-- Article Header -->
+        <header class="col-span-12 md:col-start-3 md:col-span-8 text-center mb-16">
+            <h1 class="font-display-xl text-display-xl text-primary mb-8 leading-tight">{{ post.title }}</h1>
+            <div class="flex items-center justify-center gap-4 border-y border-outline-variant/30 py-6">
+                <p class="font-headline-sm text-[16px] text-primary">by </p>
+                {% if post.author.profile.profile_picture %}
+                <img alt="{{ post.author.username }}" class="w-12 h-12 rounded-full object-cover" src="{{ post.author.profile.profile_picture.url }}" />
+                {% else %}
+                <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold">{{ post.author.username.0|upper }}</div>
+                {% endif %}
+                <div class="text-left">
+                    <p class="font-headline-sm text-[16px] text-primary">{{ post.author.first_name|default:post.author.username }}</p>
+                    <div class="flex items-center gap-2 font-label-md text-label-md text-outline">
+                        <span>Published on {{ post.created_at|date:"M d, Y" }}</span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] mb-[1px]">visibility</span> {{ post.view_count }} Views</span>
+                        <span>•</span>
+                        <span class="flex items-center gap-1"><span class="material-symbols-outlined text-[16px] mb-[1px] text-red-500" style="font-variation-settings: 'FILL' 1;">favorite</span> <span id="header-like-count">{{ post.total_likes }}</span> Likes</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Hero Image -->
+        {% if post.cover_image or post.cover_image_url %}
+        <figure class="col-span-12 md:col-start-3 md:col-span-8 mb-16">
+            <img alt="{{ post.title }}" class="w-full h-[450px] object-cover rounded-xl shadow-lg" src="{% if post.cover_image %}{{ post.cover_image.url }}{% else %}{{ post.cover_image_url }}{% endif %}" />
+        </figure>
+        {% endif %}
+
+        <!-- Article Body -->
+        <div class="col-span-12 md:col-start-3 md:col-span-8 prose prose-indigo max-w-none">
+            {{ post.content|safe }}
+        </div>
+
+        <!-- Post Interaction -->
+        <div class="col-span-12 md:col-start-3 md:col-span-8 flex flex-col items-center justify-center py-16 gap-6 border-t border-outline-variant/20 mt-16">
+            <form action="{% url 'like_post' post.id %}" method="POST" id="like-form">
+                {% csrf_token %}
+                <button type="submit" class="group flex items-center gap-3 px-8 py-4 bg-white border border-outline-variant rounded-full hover:border-secondary hover:text-secondary transition-all active:scale-95 shadow-sm">
+                    {% if request.user in post.liked_users.all %}
+                    <span id="like-icon" class="material-symbols-outlined text-red-500" style="font-variation-settings: 'FILL' 1;">favorite</span>
+                    {% else %}
+                    <span id="like-icon" class="material-symbols-outlined text-secondary" style="font-variation-settings: 'FILL' 0;">favorite</span>
+                    {% endif %}
+                    <span class="font-headline-sm text-[18px]"><span id="like-count">{{ post.total_likes }}</span> Likes</span>
+                </button>
+            </form>
+        </div>
+
+        <!-- Comments Section -->
+        <section class="col-span-12 md:col-start-3 md:col-span-8 pt-16 border-t border-outline-variant/30">
+    <h3 class="font-headline-md text-headline-sm text-primary mb-8">Comments (<span id="comment-count">{{ comments.count }}</span>)</h3>
+
+    <!-- Comment List -->
+    <div class="space-y-8 mb-12" id="comments-list">
+        {% for comment in comments %}
+        <div class="flex gap-6 pb-8 border-b border-outline-variant/20">
+            <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold shrink-0">
+                {{ comment.author.username.0|upper }}
+            </div>
+            <div class="flex-1">
+                <div class="flex justify-between items-center mb-2">
+                    <h4 class="font-headline-sm text-[16px] text-primary">{{ comment.author.first_name|default:comment.author.username }}</h4>
+                    <span class="font-label-md text-label-md text-outline">{{ comment.created_at|timesince }} ago</span>
+                </div>
+                <p class="font-body-md text-on-surface-variant mb-4">
+                    {{ comment.content }}
+                </p>
+            </div>
+        </div>
+        {% empty %}
+        <p class="text-gray-500" id="no-comments-msg">No comments yet. Be the first to start the conversation!</p>
+        {% endfor %}
+    </div>
+
+    <!-- Comment Form -->
+    <div class="bg-surface-container-low p-8 rounded-xl mb-12">
+        {% if user.is_authenticated %}
+        <form method="POST" action="{% url 'post_detail' post.id %}" id="comment-form">
+            {% csrf_token %}
+            <div class="flex gap-4 mb-6">
+                <div class="w-10 h-10 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container font-bold">
+                    {{ user.username.0|upper }}
+                </div>
+                <div class="flex-1">
+                    <label class="block font-label-md text-label-md text-outline mb-2 uppercase" for="comment">Leave a comment</label>
+                    <textarea class="w-full bg-white border border-outline-variant rounded-lg p-4 focus:ring-2 focus:ring-secondary focus:border-transparent transition-all outline-none font-body-md" id="comment" name="comment" placeholder="Share your thoughts..." rows="4" required></textarea>
+                </div>
+            </div>
+            <div class="flex justify-end">
+                <button type="submit" class="bg-primary text-on-primary px-8 py-3 rounded-lg font-headline-sm text-[16px] hover:opacity-90 transition-all active:scale-95">Post Comment</button>
+            </div>
+        </form>
+        {% else %}
+        <p class="text-gray-500 mb-4">You must be logged in to post a comment.</p>
+        <a href="{% url 'login' %}" class="bg-primary text-on-primary px-6 py-2 rounded-lg text-sm hover:opacity-90 transition-all">Log In</a>
+        {% endif %}
+    </div>
+</section>
+</article>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const commentForm = document.getElementById('comment-form');
+        if (commentForm) {
+            commentForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const url = this.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // Clear the textarea
+                        document.getElementById('comment').value = '';
+                        
+                        // Remove "no comments" message if it exists
+                        const noCommentsMsg = document.getElementById('no-comments-msg');
+                        if (noCommentsMsg) {
+                            noCommentsMsg.remove();
+                        }
+                        
+                        // Update comment count
+                        const countEl = document.getElementById('comment-count');
+                        if (countEl) {
+                            countEl.textContent = parseInt(countEl.textContent) + 1;
+                        }
+                        
+                        // Create and prepend new comment HTML
+                        const commentHtml = `
+                        <div class="flex gap-6 pb-8 border-b border-outline-variant/20">
+                            <div class="w-12 h-12 rounded-full bg-indigo-100 text-indigo-800 flex items-center justify-center font-bold shrink-0">
+                                ${data.author_initial}
+                            </div>
+                            <div class="flex-1">
+                                <div class="flex justify-between items-center mb-2">
+                                    <h4 class="font-headline-sm text-[16px] text-primary">${data.author_name}</h4>
+                                    <span class="font-label-md text-label-md text-outline">${data.created_at}</span>
+                                </div>
+                                <p class="font-body-md text-on-surface-variant mb-4">
+                                    ${data.content}
+                                </p>
+                            </div>
+                        </div>`;
+                        
+                        document.getElementById('comments-list').insertAdjacentHTML('afterbegin', commentHtml);
+                    } else {
+                        alert(data.error || 'An error occurred while posting your comment.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('An error occurred while posting your comment.');
+                });
+            });
+        }
+
+        // Like Form AJAX
+        const likeForm = document.getElementById('like-form');
+        if (likeForm) {
+            likeForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                
+                const formData = new FormData(this);
+                const url = this.getAttribute('action');
+                
+                fetch(url, {
+                    method: 'POST',
+                    body: formData,
+                    headers: {
+                        'X-Requested-With': 'XMLHttpRequest'
+                    }
+                })
+                .then(response => {
+                    // Check if redirect to login occurred
+                    if (response.redirected && response.url.includes('/login/')) {
+                        window.location.href = response.url;
+                        return null;
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        const icon = document.getElementById('like-icon');
+                        const count = document.getElementById('like-count');
+                        const headerCount = document.getElementById('header-like-count');
+                        
+                        count.textContent = data.total_likes;
+                        if (headerCount) {
+                            headerCount.textContent = data.total_likes;
+                        }
+                        
+                        if (data.liked) {
+                            icon.classList.remove('text-secondary');
+                            icon.classList.add('text-red-500');
+                            icon.style.fontVariationSettings = "'FILL' 1";
+                        } else {
+                            icon.classList.remove('text-red-500');
+                            icon.classList.add('text-secondary');
+                            icon.style.fontVariationSettings = "'FILL' 0";
+                        }
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            });
+        }
+    });
+</script>
+{% endblock %}
